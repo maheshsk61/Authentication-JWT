@@ -1,4 +1,4 @@
-const bcrypr = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const levelOfDifficulty = 10;
 const hashPassword = async (plainpassword) => {
     try {
@@ -7,7 +7,8 @@ const hashPassword = async (plainpassword) => {
         return hashedPwd
     }
     catch (e) {
-        return false
+        console.error('Error in hashPassword:', e);
+        return false;
     }
 }
 const hashValidator = async (plainpassword, hashedPwd) => {
@@ -16,6 +17,7 @@ const hashValidator = async (plainpassword, hashedPwd) => {
         return validate
     }
     catch (e) {
+        console.error('Error in hashValidator:', e);
         return false
     }
 }

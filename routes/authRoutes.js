@@ -1,24 +1,26 @@
 const express = require('express')
 const router = express.Router()
-const user = require('../models/user')
+const User = require('../models/user')
 const { hashPassword, hashValidator } = require('../helper/hashing')
 router.post('/signup', async (req, res) => {
-    const hash = await hashPassword(req.body.password)
+    const hashedPwd = await hashPassword(req.body.password)
     try {
-        const newUser = new user({
-            userName: req.body.name,
+        const newUser = new User({
+            userName: req.body.userName,
             email: req.body.email,
-            password: hash
+            password: hashedPwd
         })
-        const saveUser = await newUser.save()
-        res.json(saveUser)
+        const savedUser = await newUser.save()
+        console.log(savedUser);
+        res.json(savedUser)
     }
     catch (e) {
+        console.log(e);
         res.send(e);
     }
 })
 router.post('/login', async (req, res) => {
-    const isExistingUser = await user.findOne({ email: req.body.email })
+    const isExistingUser = await User.findOne({ email: req.body.email })
     try {
         if (isExistingUser) {
             const isPasswordValid = await hashValidator(req.body.password, isExistingUser.password)
