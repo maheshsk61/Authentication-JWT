@@ -1,9 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/user')
-const { hashPassword, hashValidator } = require('../helper/hashing')
+const { hashPasswordGenerator, hashValidator } = require('../helper/hashing')
+const { tokenGenerator } = require('../helper/token')
+const authVerify = require("../helper/authVerify")
 router.post('/signup', async (req, res) => {
-    const hashedPwd = await hashPassword(req.body.password)
+    const hashedPwd = await hashPasswordGenerator(req.body.password)
     try {
         const newUser = new User({
             userName: req.body.userName,
@@ -22,10 +24,16 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
     const isExistingUser = await User.findOne({ email: req.body.email })
     try {
-        if (isExistingUser) {
+        if (!isExistingUser) {
+            res.send('Incorrect email')
+        }
+        else {
             const isPasswordValid = await hashValidator(req.body.password, isExistingUser.password)
             if (isPasswordValid) {
-                res.send("Login Successful")
+                const tokenGenerated = await tokenGenerator(isExistingUser.email)
+                res.cookie("jwt", tokenGenerated)
+                res.send(tokenGenerated)
+                console.log("Login Successful");
             }
             else {
                 res.send("Invalid Password")
@@ -33,7 +41,12 @@ router.post('/login', async (req, res) => {
         }
     }
     catch (e) {
+        console.log(e);
         res.send(e);
     }
+})
+
+router.get("/protected", authVerify, (req, res) => {
+    res.send("Access good")
 })
 module.exports = router
